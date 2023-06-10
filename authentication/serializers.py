@@ -15,6 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         Token.objects.create(user=user)
         Profile.objects.create(prouser=user)
+        UserInfo.objects.create(user_email=user)
         return user
 
 
@@ -64,20 +65,20 @@ class AdminUserInfoSerializer(serializers.ModelSerializer):
         return response
 
 
-# class UserInfoSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserInfo
-#         fields = "__all__"
-#         read_only_fields = ['user_email']
-#
-#     def validate(self, attrs):
-#         attrs['user_email'] = self.context['request'].user
-#         return attrs
-#
-#     def to_representation(self, instance):
-#         response = super().to_representation(instance)
-#         response['user_email'] = UserSerializer(instance.user_email).data
-#         return response
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserInfo
+        fields = "__all__"
+        read_only_fields = ['user_email']
+
+    def validate(self, attrs):
+        attrs['user_email'] = self.context['request'].user
+        return attrs
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['user_email'] = UserSerializer(instance.user_email).data
+        return response
 
 
 class MyAuthTokenSerializer(serializers.Serializer):

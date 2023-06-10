@@ -82,3 +82,30 @@ class AdminRegister(views.APIView):
             serializers.save()
             return Response({"error": False, "message": f"Admin User is created for '{serializers.data['email']}'"})
         return Response({"error": True, "message": "Something is wrong"})
+
+
+class UserInfoView(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request):
+        try:
+            query1 = UserInfo.objects.get(user_email=request.user)
+            query2 = User.objects.get(email=request.user)
+            query3 = Profile.objects.get(prouser=request.user)
+            serializer = UserInfoSerializer(query1)
+            serializer_data = serializer.data
+            all_data = []
+            serializer_user = UserSerializer(query2)
+            serializer_profile = ProfileSerializers(query3)
+            serializer_data["user"] = serializer_user.data
+            serializer_data["profile"] = serializer_profile.data
+            all_data.append(serializer_data)
+            response_msg = {"error": False, "data": all_data}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !! Try again....."}
+        return Response(response_msg)
+
+
+
+

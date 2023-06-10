@@ -11,4 +11,5 @@ urlpatterns = [
     path('admin_login/', CustomAuthToken.as_view(), name="admin_login"),
     path('register/', RegisterView.as_view(), name="register"),
     path('admin_register/', AdminRegister.as_view(), name="admin_register"),
+    path('user/', UserInfoView.as_view(), name="user"),
 ]
