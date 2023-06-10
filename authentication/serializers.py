@@ -64,6 +64,22 @@ class AdminUserInfoSerializer(serializers.ModelSerializer):
         return response
 
 
+# class UserInfoSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserInfo
+#         fields = "__all__"
+#         read_only_fields = ['user_email']
+#
+#     def validate(self, attrs):
+#         attrs['user_email'] = self.context['request'].user
+#         return attrs
+#
+#     def to_representation(self, instance):
+#         response = super().to_representation(instance)
+#         response['user_email'] = UserSerializer(instance.user_email).data
+#         return response
+
+
 class MyAuthTokenSerializer(serializers.Serializer):
     email = serializers.EmailField(label=_("Email"))
     password = serializers.CharField(

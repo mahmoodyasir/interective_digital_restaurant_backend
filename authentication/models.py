@@ -56,3 +56,15 @@ class AdminUserInfo(models.Model):
 
     def __str__(self):
         return f"{self.admin_email}=={self.admin_firstname}=={self.admin_lastname}=={self.date}"
+
+
+class UserInfo(models.Model):
+    user_email = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_firstname = models.CharField(max_length=200, blank=True, null=True)
+    user_lastname = models.CharField(max_length=200, blank=True, null=True)
+    user_nid = models.CharField(unique=True, max_length=200, blank=True, null=True)
+    user_phone = models.CharField(max_length=200, blank=True, null=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user_email}"

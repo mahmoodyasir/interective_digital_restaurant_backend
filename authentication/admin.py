@@ -19,4 +19,5 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(AdminUserInfo)
+admin.site.register(UserInfo)
 
