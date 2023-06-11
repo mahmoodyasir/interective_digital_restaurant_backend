@@ -25,3 +25,5 @@ class MenuAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(OrderStatus, OrderStatusAdmin)
 admin.site.register(Menu, MenuAdmin)
+admin.site.register(Cart)
+admin.site.register(CartProduct)
