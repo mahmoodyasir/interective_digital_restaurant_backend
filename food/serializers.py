@@ -19,4 +19,4 @@ class CartProductSerializers(serializers.ModelSerializer):
     class Meta:
         model = CartProduct
         fields = "__all__"
-        depth = 3
+        depth = 2

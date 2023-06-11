@@ -90,3 +90,74 @@ class AddToCart(views.APIView):
             response_msg = {"error": True, "message": "Product is not added to cart !! Try Again"}
 
         return Response(response_msg)
+
+
+class IncreaseCart(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        cart_product_id = request.data["id"]
+        cart_product = CartProduct.objects.get(id=cart_product_id)
+        cart_obj = cart_product.cart
+
+        cart_product.quantity += 1
+        cart_product.subtotal += cart_product.price
+        cart_product.save()
+
+        cart_obj.total += cart_product.price
+        cart_obj.save()
+
+        return Response({"message": "Cart Product is Added"})
+
+
+class DecreaseCart(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        cart_product_id = request.data["id"]
+        cart_product = CartProduct.objects.get(id=cart_product_id)
+        cart_obj = cart_product.cart
+
+        cart_product.quantity -= 1
+        cart_product.subtotal -= cart_product.price
+        cart_product.save()
+
+        if cart_product.quantity == 0:
+            cart_product.delete()
+
+        cart_obj.total -= cart_product.price
+        cart_obj.save()
+
+        return Response({"message": "Cart Product is Decreased"})
+
+
+class DeleteCartProduct(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        cart_product = CartProduct.objects.get(id=request.data['id'])
+        cart_obj = cart_product.cart
+        cart_obj.total -= cart_product.subtotal
+        cart_obj.save()
+        cart_product.delete()
+
+        return Response({"message": "cart Product is deleted"})
+
+
+class DeleteFullCart(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        try:
+            cart_id = request.data['id']
+            cart_obj = Cart.objects.get(id=cart_id)
+            cart_obj.delete()
+            response_msg = {"error": False, "message": "cart is Deleted"}
+        except:
+            response_msg = {"error": False, "message": "cart is Deleted"}
+
+        return Response(response_msg)
