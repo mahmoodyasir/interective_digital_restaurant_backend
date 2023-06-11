@@ -14,5 +14,6 @@ urlpatterns = [
     path('decreasecart/', DecreaseCart.as_view(), name="decreasecart"),
     path('deletecartproduct/', DeleteCartProduct.as_view(), name="deletecartproduct"),
     path('deletefullcart/', DeleteFullCart.as_view(), name="deletefullcart"),
+    path('checkproduct/', AlreadyAddedProductResponse.as_view(), name="checkproduct"),
 
 ]

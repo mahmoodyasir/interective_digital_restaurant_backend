@@ -161,3 +161,23 @@ class DeleteFullCart(views.APIView):
             response_msg = {"error": False, "message": "cart is Deleted"}
 
         return Response(response_msg)
+
+
+class AlreadyAddedProductResponse(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        data = request.data
+        print(data)
+        cartId = data["cartId"]
+        menuId = data["menuId"]
+        query = CartProduct.objects.filter(cart_id=cartId, menu=menuId)
+
+        if query.exists():
+            serializer = CartProductSerializers(query, many=True)
+            response_msg = {"status": True, "cartdata": serializer.data}
+            return Response(response_msg)
+        else:
+            response_msg = {"status": False, "cartdata": None}
+            return Response(response_msg)
