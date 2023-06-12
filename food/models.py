@@ -56,3 +56,27 @@ class CartProduct(models.Model):
 
     def __str__(self):
         return f"Cart=={self.cart.id}<==>CartProduct:{self.id}==Quantity=={self.quantity}==Customer=={self.cart.customer}"
+
+
+class Rating(models.Model):
+    customer = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True)
+    ratingScore = models.PositiveIntegerField()
+    menuName = models.ForeignKey(Menu, on_delete=models.CASCADE, null=True)
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Id=={self.id}, Customer=={self.customer}, Rating=={self.ratingScore}, Menu=={self.menuName}"
+
+
+class Review(models.Model):
+    customer = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True)
+    comment = models.CharField(max_length=255, null=True, blank=True)
+    menuName = models.ForeignKey(Menu, on_delete=models.CASCADE, null=True)
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Id=={self.id}, Customer=={self.customer}, Menu=={self.menuName}, Comment=={self.comment}"
+
+

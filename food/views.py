@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .serializers import *
+from django.db.models import Q
 
 
 class MenuView(generics.GenericAPIView, mixins.ListModelMixin, mixins.RetrieveModelMixin):
@@ -181,3 +182,75 @@ class AlreadyAddedProductResponse(views.APIView):
         else:
             response_msg = {"status": False, "cartdata": None}
             return Response(response_msg)
+
+
+class RatingView(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+
+    def list(self, request):
+        query = Rating.objects.filter(customer=request.user.profile).order_by('-id')
+        serializer = RatingSerializers(query, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        try:
+            data = request.data
+            customer_obj = request.user.profile
+            rating_score = data['rating']
+            menuId = data['menuId']
+            menu_obj = Menu.objects.get(id=menuId)
+            Rating.objects.create(
+                customer=customer_obj,
+                ratingScore=rating_score,
+                menuName=menu_obj
+            )
+            query = Rating.objects.all()
+            sum = 0
+            for i in range(query.count()):
+                rating = getattr(query[i], "ratingScore")
+                sum += rating
+
+            sum = sum/(query.count())
+            menu_obj.ratings = sum
+            menu_obj.save()
+            response_msg = {"error": False, "message": "Rating Added"}
+        except:
+            response_msg = {"error": True, "message": "Something Went Wrong !! "}
+        return Response(response_msg)
+
+    def update(self, request, pk=None):
+        try:
+            data = request.data
+            query = Rating.objects.get(id=pk)
+            user_obj = request.user.profile
+
+            query2 = Rating.objects.filter(Q(id=pk) & Q(customer=user_obj))
+            if query2.exists():
+                query.ratingScore = data['rating']
+                query.save()
+                query3 = Rating.objects.all()
+                sum = 0
+                for i in range(query3.count()):
+                    rating = getattr(query3[i], "ratingScore")
+                    sum += rating
+
+                sum = sum / (query3.count())
+                menu_obj = Menu.objects.get(id=data['menuId'])
+                menu_obj.ratings = sum
+                menu_obj.save()
+
+            else:
+                response_msg = {"error": True, "message": "FAILED"}
+                return Response(response_msg)
+            response_msg = {"error": False, "message": "Rating Added"}
+        except:
+            response_msg = {"error": True, "message": "Something Went Wrong"}
+
+        return Response(response_msg)
+
+
+
+
+
+

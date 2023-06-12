@@ -4,6 +4,7 @@ from .views import *
 
 route = routers.DefaultRouter()
 route.register("cart", MyCart, basename="cart")
+route.register("putrating", RatingView, basename="putrating")
 
 
 urlpatterns = [
