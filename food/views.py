@@ -170,7 +170,6 @@ class AlreadyAddedProductResponse(views.APIView):
 
     def post(self, request):
         data = request.data
-        print(data)
         cartId = data["cartId"]
         menuId = data["menuId"]
         query = CartProduct.objects.filter(cart_id=cartId, menu=menuId)
@@ -205,7 +204,7 @@ class RatingView(viewsets.ViewSet):
                 ratingScore=rating_score,
                 menuName=menu_obj
             )
-            query = Rating.objects.all()
+            query = Rating.objects.filter(menuName=menu_obj)
             sum = 0
             for i in range(query.count()):
                 rating = getattr(query[i], "ratingScore")
@@ -214,7 +213,8 @@ class RatingView(viewsets.ViewSet):
             sum = sum/(query.count())
             menu_obj.ratings = sum
             menu_obj.save()
-            response_msg = {"error": False, "message": "Rating Added"}
+            serializer = MenuSerializer(menu_obj)
+            response_msg = {"error": False, "message": serializer.data}
         except:
             response_msg = {"error": True, "message": "Something Went Wrong !! "}
         return Response(response_msg)
@@ -229,25 +229,46 @@ class RatingView(viewsets.ViewSet):
             if query2.exists():
                 query.ratingScore = data['rating']
                 query.save()
-                query3 = Rating.objects.all()
+                menu_obj = data['menuId']
+                query3 = Rating.objects.filter(menuName_id=menu_obj)
                 sum = 0
                 for i in range(query3.count()):
                     rating = getattr(query3[i], "ratingScore")
                     sum += rating
 
                 sum = sum / (query3.count())
-                menu_obj = Menu.objects.get(id=data['menuId'])
-                menu_obj.ratings = sum
-                menu_obj.save()
+                menu_obj2 = Menu.objects.get(id=data['menuId'])
+                menu_obj2.ratings = sum
+                menu_obj2.save()
+                serializer = MenuSerializer(menu_obj2)
+                print(serializer.data)
 
             else:
                 response_msg = {"error": True, "message": "FAILED"}
                 return Response(response_msg)
-            response_msg = {"error": False, "message": "Rating Added"}
+            response_msg = {"error": False, "message": serializer.data}
         except:
             response_msg = {"error": True, "message": "Something Went Wrong"}
 
         return Response(response_msg)
+
+
+class OwnRating(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    
+    def post(self, request):
+        data = request.data
+        rating_obj = Rating.objects.filter(Q(customer=request.user.profile) & Q(menuName_id=data['menuId']))
+        print(rating_obj)
+        if rating_obj.exists():
+            serializer = RatingSerializers(rating_obj, many=True)
+            return Response(serializer.data)
+        else:
+            response_msg = {"error": True, "message": "Something Went Wrong !! "}
+            return Response(response_msg)
+
+    
 
 
 

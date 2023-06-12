@@ -29,7 +29,7 @@ class Menu(models.Model):
     ingredients = models.CharField(max_length=200, null=True, blank=True)
     description = models.TextField()
     total_sold = models.PositiveIntegerField(default=0)
-    ratings = models.CharField(max_length=155, null=True, blank=True)
+    ratings = models.CharField(max_length=155, default=0)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
