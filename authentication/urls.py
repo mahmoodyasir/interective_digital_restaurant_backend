@@ -12,4 +12,10 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name="register"),
     path('admin_register/', AdminRegister.as_view(), name="admin_register"),
     path('user/', UserInfoView.as_view(), name="user"),
+
+
+    path('userdataupdate/', UserDataUpdate.as_view(), name="userdataupdate"),
+    path('profile_image_update/', ProfileImageUpdate.as_view(), name="profile_image_update"),
+    path('change_password/', ChangePassword.as_view(), name="change_password"),
+
 ]
