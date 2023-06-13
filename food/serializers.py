@@ -35,3 +35,19 @@ class ReviewSerializers(serializers.ModelSerializer):
         fields = "__all__"
         depth = 2
 
+
+class OrderSerializers(serializers.ModelSerializer):
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+        depth = 1
+
+
+class OrderStatusSerializers(serializers.ModelSerializer):
+    # order_status = ChoicesField(choices=Order.ORDER_STATUS)
+
+    class Meta:
+        model = OrderStatus
+        fields = "__all__"
+

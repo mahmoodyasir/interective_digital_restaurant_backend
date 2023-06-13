@@ -210,7 +210,7 @@ class RatingView(viewsets.ViewSet):
                 rating = getattr(query[i], "ratingScore")
                 sum += rating
 
-            sum = sum/(query.count())
+            sum = sum / (query.count())
             menu_obj.ratings = sum
             menu_obj.save()
             serializer = MenuSerializer(menu_obj)
@@ -256,7 +256,7 @@ class RatingView(viewsets.ViewSet):
 class OwnRating(views.APIView):
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
-    
+
     def post(self, request):
         data = request.data
         rating_obj = Rating.objects.filter(Q(customer=request.user.profile) & Q(menuName_id=data['menuId']))
@@ -268,10 +268,69 @@ class OwnRating(views.APIView):
             response_msg = {"error": True, "message": "Something Went Wrong !! "}
             return Response(response_msg)
 
-    
 
+class Orders(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
 
+    def get(self, request):
+        query = Order.objects.filter(cart__customer=request.user.profile).order_by('-id')
+        serializer = OrderSerializers(query, many=True)
+        all_data = []
+        for order in serializer.data:
+            print(order)
+            cart_product = CartProduct.objects.filter(cart_id=order['cart']['id'])
+            cart_product_serializer = CartProductSerializers(cart_product, many=True)
+            order['cartproduct'] = cart_product_serializer.data
+            all_data.append(order)
+        return Response(all_data)
 
+    def retrieve(self, request, pk=None):
+        try:
+            query = Order.objects.get(id=pk)
+            serializers = OrderSerializers(query)
+            data = serializers.data
+            all_data = []
+            cartproduct = CartProduct.objects.filter(cart_id=data['cart']['id'])
+            cartproduct_serializer = CartProductSerializers( cartproduct, many=True)
+            data["cartproduct"] = cartproduct_serializer.data
+            all_data.append(data)
+            response_msg = {'error': False, "data": all_data}
+        except:
+            response_msg = {'error': True, "data": "No Data Found !! "}
+        return Response(response_msg)
 
+    def create(self, request):
+        try:
+            data = request.data
+            cart_id = data['cartId']
+            address = data['address']
+            email = data['email']
+            mobile = data['mobile']
+            cart_obj = Cart.objects.get(id=cart_id)
+            cart_obj.complete = True
+            cart_obj.save()
+            Order.objects.create(
+                cart=cart_obj,
+                address=address,
+                mobile=mobile,
+                email=email,
+                total=cart_obj.total
+            )
+            response_msg = {"error": False, "message": "Your order is complete"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong ! "}
 
+        return Response(response_msg)
 
+    def destroy(self, request, pk=None):
+        try:
+            order_obj = Order.objects.get(id=pk)
+            cart_obj = Cart.objects.get(id=order_obj.cart.id)
+            order_obj.delete()
+            cart_obj.delete()
+            response_msg = {"error": False, "message": "Order is deleted"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !!"}
+
+        return Response(response_msg)

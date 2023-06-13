@@ -5,6 +5,7 @@ from .views import *
 route = routers.DefaultRouter()
 route.register("cart", MyCart, basename="cart")
 route.register("putrating", RatingView, basename="putrating")
+route.register("orders", Orders, basename="orders")
 
 
 urlpatterns = [

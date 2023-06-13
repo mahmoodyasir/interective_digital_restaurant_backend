@@ -55,6 +55,7 @@ class CustomAuthToken(MyAuthToken):
         if user.is_staff:
             token, created = Token.objects.get_or_create(user=user)
             return Response({
+                'error': False,
                 'admin_token': token.key,
                 'user_id': user.pk,
                 'email': user.email,
@@ -85,6 +86,7 @@ class AdminRegister(views.APIView):
 
 
 class UserInfoView(views.APIView):
+    # API for information of currently logged-In USER
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -162,3 +164,23 @@ class ChangePassword(views.APIView):
             response_msg = {"message": False}
             return Response(response_msg)
 
+
+class AdminProfileView(views.APIView):
+
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        try:
+            query = AdminUserInfo.objects.get(admin_email=request.user)
+            query2 = Profile.objects.get(prouser=request.user)
+            serializer = AdminUserInfoSerializer(query)
+            serializer_data = serializer.data
+            all_data = []
+            serializer_user = ProfileSerializers(query2)
+            serializer_data["profile_info"] = serializer_user.data
+            all_data.append(serializer_data)
+            response_msg = {"error": False, "data": all_data}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !! Try again....."}
+        return Response(response_msg)

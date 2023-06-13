@@ -80,3 +80,17 @@ class Review(models.Model):
         return f"Id=={self.id}, Customer=={self.customer}, Menu=={self.menuName}, Comment=={self.comment}"
 
 
+class Order(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, unique=False)
+    address = models.CharField(max_length=255)
+    mobile = models.CharField(max_length=16)
+    email = models.CharField(max_length=200)
+    total = models.PositiveIntegerField()
+    order_status = models.ForeignKey(OrderStatus, on_delete=models.CASCADE, default=6)
+    payment_complete = models.BooleanField(default=False)
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order id=={self.id}==Complete=={self.cart.complete}==Customer=={self.cart.customer}"
+
