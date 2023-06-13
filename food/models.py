@@ -55,7 +55,7 @@ class CartProduct(models.Model):
     subtotal = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"Cart=={self.cart.id}<==>CartProduct:{self.id}==Quantity=={self.quantity}==Customer=={self.cart.customer}"
+        return f"Cart:{self.cart.id}==>CartProduct:{self.id}==Quantity:{self.quantity}==Customer:{self.cart.customer}"
 
 
 class Rating(models.Model):

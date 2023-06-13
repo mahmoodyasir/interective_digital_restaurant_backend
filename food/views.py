@@ -308,6 +308,7 @@ class Orders(viewsets.ViewSet):
             email = data['email']
             mobile = data['mobile']
             cart_obj = Cart.objects.get(id=cart_id)
+
             cart_obj.complete = True
             cart_obj.save()
             Order.objects.create(
@@ -317,7 +318,17 @@ class Orders(viewsets.ViewSet):
                 email=email,
                 total=cart_obj.total
             )
-            response_msg = {"error": False, "message": "Your order is complete"}
+            cartproduct_obj = CartProduct.objects.filter(cart_id=cart_obj)
+            serializer = CartProductSerializers(cartproduct_obj, many=True)
+            for i in serializer.data:
+                current_quantity = i['quantity']
+                for j in i['menu']:
+                    mymenu = Menu.objects.filter(id=j['id']).first()
+                    mymenu.total_sold += current_quantity
+                    mymenu.save()
+                    print(mymenu)
+                    print(current_quantity)
+            response_msg = {"error": False, "message": "Order Completed"}
         except:
             response_msg = {"error": True, "message": "Something is wrong ! "}
 
