@@ -45,9 +45,14 @@ class OrderSerializers(serializers.ModelSerializer):
 
 
 class OrderStatusSerializers(serializers.ModelSerializer):
-    # order_status = ChoicesField(choices=Order.ORDER_STATUS)
 
     class Meta:
         model = OrderStatus
+        fields = "__all__"
+
+
+class CategorySerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Category
         fields = "__all__"
 

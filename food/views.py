@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, mixins, viewsets, views, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from .serializers import *
 from django.db.models import Q
@@ -39,7 +39,7 @@ class MyCart(viewsets.ViewSet):
 
 
 class AddToCart(views.APIView):
-    uthentication_classes = [TokenAuthentication, ]
+    authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
@@ -345,3 +345,37 @@ class Orders(viewsets.ViewSet):
             response_msg = {"error": True, "message": "Something is wrong !!"}
 
         return Response(response_msg)
+
+
+class NoPaginationItem(views.APIView):
+    def get(self, request):
+        query = Menu.objects.all().order_by('-id')
+        serializer = MenuSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class CategoryView(views.APIView):
+    def get(self, request):
+        query = Category.objects.all()
+        serializer = CategorySerializers(query, many=True)
+        return Response(serializer.data)
+
+
+class AddItems(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request):
+        data = request.data
+        serializer = MenuSerializer(data=data, context={"request": request})
+
+        if serializer.is_valid(raise_exception=True):
+            cat_id = data["category"]
+            serializer.save()
+            menu_obj = Menu.objects.last()
+            menu_obj.category = Category.objects.get(id=cat_id)
+            menu_obj.save()
+            return Response({"error": False, "message": "Menu is Added"})
+        return Response({"error": True, "message": "Something is wrong"})
+
+

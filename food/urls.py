@@ -19,5 +19,8 @@ urlpatterns = [
     path('deletefullcart/', DeleteFullCart.as_view(), name="deletefullcart"),
     path('checkproduct/', AlreadyAddedProductResponse.as_view(), name="checkproduct"),
     path('ownrating/', OwnRating.as_view(), name="ownrating"),
+    path('nopagitem/', NoPaginationItem.as_view(), name="nopagitem"),
+    path('category/', CategoryView.as_view(), name="category"),
+    path('add_item/', AddItems.as_view(), name="add_item"),
 
 ]
