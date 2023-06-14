@@ -398,6 +398,22 @@ class UpdateMenuItems(views.APIView):
         return Response(response_msg)
 
 
+class DeleteItem(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request):
+        try:
+            data = request.data
+            menu_obj = Menu.objects.get(id=data['menu_id'])
+            menu_obj.delete()
+            response_msg = {"error": False, "message": "Product is deleted"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !!"}
+        return Response(response_msg)
+
+
+
 
 
 
