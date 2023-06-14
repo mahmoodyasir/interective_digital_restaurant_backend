@@ -379,3 +379,25 @@ class AddItems(views.APIView):
         return Response({"error": True, "message": "Something is wrong"})
 
 
+class UpdateMenuItems(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request):
+        try:
+            data = request.data
+            menu_obj = Menu.objects.filter(id=data['menu_id']).first()
+            serializer = MenuSerializer(menu_obj, data=data, context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            menu_obj.category = Category.objects.get(id=data['category'])
+            menu_obj.save()
+            response_msg = {"error": False, "message": "Menu Item Updated"}
+        except:
+            response_msg = {"error": True, "message": "Can't Update Menu Item"}
+        return Response(response_msg)
+
+
+
+
+

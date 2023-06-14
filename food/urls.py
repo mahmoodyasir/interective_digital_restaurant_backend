@@ -22,5 +22,6 @@ urlpatterns = [
     path('nopagitem/', NoPaginationItem.as_view(), name="nopagitem"),
     path('category/', CategoryView.as_view(), name="category"),
     path('add_item/', AddItems.as_view(), name="add_item"),
+    path('update_item/', UpdateMenuItems.as_view(), name="update_item"),
 
 ]
