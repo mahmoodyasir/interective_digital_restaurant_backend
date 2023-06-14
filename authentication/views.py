@@ -85,6 +85,16 @@ class AdminRegister(views.APIView):
         return Response({"error": True, "message": "Something is wrong"})
 
 
+class AdminView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query = Profile.objects.filter(prouser__is_superuser=True).order_by('-id')
+        serializer = ProfileSerializers(query, many=True)
+        return Response(serializer.data)
+
+
 class UserInfoView(views.APIView):
     # API for information of currently logged-In USER
     permission_classes = [IsAuthenticated, ]
@@ -117,6 +127,7 @@ class UserDataUpdate(views.APIView):
         try:
             user = request.user
             data = request.data
+            print(data)
             user_obj = UserInfo.objects.get(user_email=user)
             user_obj.user_firstname = data["firstname"]
             user_obj.user_lastname = data["lastname"]
@@ -126,7 +137,17 @@ class UserDataUpdate(views.APIView):
 
             response_msg = {"error": False, "message": "User Data is Updated"}
         except:
-            response_msg = {"error": True, "message": "User Data is not update !! Try Again ...."}
+            try:
+                data = request.data
+                admin_obj = AdminUserInfo.objects.get(admin_email=user)
+                admin_obj.admin_firstname = data["firstname"]
+                admin_obj.admin_lastname = data["lastname"]
+                admin_obj.admin_nid = data["nid"]
+                admin_obj.admin_phone = data["phone"]
+                admin_obj.save()
+                response_msg = {"error": False, "message": "Admin Data Updated"}
+            except:
+                response_msg = {"error": True, "message": "Something is Wrong !! "}
         return Response(response_msg)
 
 
@@ -183,4 +204,18 @@ class AdminProfileView(views.APIView):
             response_msg = {"error": False, "data": all_data}
         except:
             response_msg = {"error": True, "message": "Something is wrong !! Try again....."}
+        return Response(response_msg)
+
+
+class gAdminDelete(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request, pk):
+        try:
+            query = User.objects.get(id=pk)
+            query.delete()
+            response_msg = {"error": False, "message": "Admin User Deleted Successfully"}
+        except:
+            response_msg = {"error": True, "message": "Admin User Couldn't Delete "}
         return Response(response_msg)
