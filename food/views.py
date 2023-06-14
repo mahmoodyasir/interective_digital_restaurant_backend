@@ -413,6 +413,22 @@ class DeleteItem(views.APIView):
         return Response(response_msg)
 
 
+class TotalTableValues(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        user = User.objects.all().values().count()
+        order = Order.objects.all().values().count()
+        paid = Order.objects.filter(payment_complete=True).values().count()
+        menu = Menu.objects.all().values().count()
+
+        return Response({
+            "user": user,
+            "order": order,
+            "paid": paid,
+            "menu": menu
+        })
 
 
 

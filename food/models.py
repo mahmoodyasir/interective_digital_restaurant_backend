@@ -94,3 +94,6 @@ class Order(models.Model):
     def __str__(self):
         return f"Order id=={self.id}==Complete=={self.cart.complete}==Customer=={self.cart.customer}"
 
+
+
+

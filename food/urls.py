@@ -24,5 +24,6 @@ urlpatterns = [
     path('add_item/', AddItems.as_view(), name="add_item"),
     path('update_item/', UpdateMenuItems.as_view(), name="update_item"),
     path('delete_item/', DeleteItem.as_view(), name="delete_item"),
+    path('total_values/', TotalTableValues.as_view(), name="total_values"),
 
 ]
