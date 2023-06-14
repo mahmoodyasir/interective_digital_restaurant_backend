@@ -431,5 +431,47 @@ class TotalTableValues(views.APIView):
         })
 
 
+class OrderStatusView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query = OrderStatus.objects.all()
+        serializer = OrderStatusSerializers(query, many=True)
+        return Response(serializer.data)
+
+
+class AllOrderView(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def list(self, request):
+        query = Order.objects.all().order_by('-id')
+        serializer = OrderSerializers(query, many=True)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        try:
+            data = request.data
+
+            if data['indicator'] == 'p':
+                query = Order.objects.get(id=pk)
+                if data['pay_id'] == '1':
+                    query.payment_complete = True
+                    query.save()
+                elif data['pay_id'] == '2':
+                    query.payment_complete = False
+                    query.save()
+
+            elif data['indicator'] == 'o':
+                query = Order.objects.get(id=pk)
+                status = OrderStatus.objects.get(id=data['status_id'])
+                query.order_status = status
+                query.save()
+
+            response_msg = {"error": False, "message": "Successfully Updated"}
+        except:
+            response_msg = {"error": True, "message": "Couldn't Update"}
+        return Response(response_msg)
 
 

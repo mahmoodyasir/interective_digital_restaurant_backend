@@ -6,6 +6,7 @@ route = routers.DefaultRouter()
 route.register("cart", MyCart, basename="cart")
 route.register("putrating", RatingView, basename="putrating")
 route.register("orders", Orders, basename="orders")
+route.register("allorders", AllOrderView, basename="allorders")
 
 
 urlpatterns = [
@@ -25,5 +26,6 @@ urlpatterns = [
     path('update_item/', UpdateMenuItems.as_view(), name="update_item"),
     path('delete_item/', DeleteItem.as_view(), name="delete_item"),
     path('total_values/', TotalTableValues.as_view(), name="total_values"),
+    path('order_status/', OrderStatusView.as_view(), name="order_status"),
 
 ]
