@@ -522,7 +522,8 @@ class CustomerReview(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         user = request.user.profile
-        query = Review.objects.filter(Q(id=pk) & Q(customer=user)).first()
+        query = Review.objects.filter(Q(id=pk) & Q(customer=user))
+
         if query.exists():
             query.delete()
             return Response({"error": False, "message": "Your Review Deleted"})
