@@ -16,6 +16,10 @@ from rest_framework.decorators import api_view
 from datetime import *
 
 
+def general(request):
+    return render(request, 'general.html')
+
+
 class MyAuthToken(auth_views.ObtainAuthToken):
     # Customized Token Based Email Authentication.
     serializer_class = MyAuthTokenSerializer
