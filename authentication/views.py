@@ -207,7 +207,7 @@ class AdminProfileView(views.APIView):
         return Response(response_msg)
 
 
-class gAdminDelete(views.APIView):
+class AdminDelete(views.APIView):
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 

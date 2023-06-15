@@ -72,12 +72,13 @@ class Rating(models.Model):
 class Review(models.Model):
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True)
     comment = models.CharField(max_length=255, null=True, blank=True)
-    menuName = models.ForeignKey(Menu, on_delete=models.CASCADE, null=True)
+    rating = models.PositiveIntegerField(default=0)
+    remain_star = models.PositiveIntegerField(default=0)
     date = models.DateField(auto_now_add=True)
     time = models.TimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Id=={self.id}, Customer=={self.customer}, Menu=={self.menuName}, Comment=={self.comment}"
+        return f"Id=={self.id}, Customer=={self.customer}, Menu=={self.rating}, Comment=={self.comment}"
 
 
 class Order(models.Model):

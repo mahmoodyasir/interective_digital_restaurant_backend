@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from .serializers import *
+from authentication.serializers import ProfileSerializers
 from django.db.models import Q
 
 
@@ -473,5 +474,62 @@ class AllOrderView(viewsets.ViewSet):
         except:
             response_msg = {"error": True, "message": "Couldn't Update"}
         return Response(response_msg)
+
+
+class AllCustomerReview(views.APIView):
+
+    def get(self, request):
+        try:
+            query = Review.objects.all().order_by('-id')
+            serializer = ReviewSerializers(query, many=True)
+            all_data = []
+            for cust in serializer.data:
+                user = Profile.objects.get(id=cust['customer']['id'])
+                user_serializer = ProfileSerializers(user)
+                cust['user'] = user_serializer.data
+                all_data.append(cust)
+
+            return Response(all_data)
+        except:
+            return Response({"error": True, "message": "No Data Available"})
+
+
+class DeleteReviewAdmin(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def delete(self, request, pk=None):
+        query = Review.objects.get(id=pk)
+        print(query)
+        query.delete()
+        return Response({"error": False, "message": "Your Review Deleted"})
+
+
+class CustomerReview(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+
+    def create(self, request):
+        data = request.data
+        user = request.user.profile
+        Review.objects.create(
+            customer=user,
+            comment=data['comment'],
+            rating=data['rating'],
+            remain_star=5 - data['rating']
+        )
+        return Response({"error": False, "message": "Your Review Added"})
+
+    def destroy(self, request, pk=None):
+        user = request.user.profile
+        query = Review.objects.filter(Q(id=pk) & Q(customer=user)).first()
+        if query.exists():
+            query.delete()
+            return Response({"error": False, "message": "Your Review Deleted"})
+        else:
+            return Response({"error": True, "message": "Something Went Wrong"})
+
+
+
 
 

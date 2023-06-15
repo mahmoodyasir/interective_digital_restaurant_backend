@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import *
 
@@ -30,10 +31,11 @@ class RatingSerializers(serializers.ModelSerializer):
 
 
 class ReviewSerializers(serializers.ModelSerializer):
+
     class Meta:
         model = Review
         fields = "__all__"
-        depth = 2
+        depth = 1
 
 
 class OrderSerializers(serializers.ModelSerializer):

@@ -7,6 +7,7 @@ route.register("cart", MyCart, basename="cart")
 route.register("putrating", RatingView, basename="putrating")
 route.register("orders", Orders, basename="orders")
 route.register("allorders", AllOrderView, basename="allorders")
+route.register("review", CustomerReview, basename="review")
 
 
 urlpatterns = [
@@ -27,5 +28,7 @@ urlpatterns = [
     path('delete_item/', DeleteItem.as_view(), name="delete_item"),
     path('total_values/', TotalTableValues.as_view(), name="total_values"),
     path('order_status/', OrderStatusView.as_view(), name="order_status"),
+    path('all_review/', AllCustomerReview.as_view(), name="all_review"),
+    path('delete_review_admin/<str:pk>/', DeleteReviewAdmin.as_view(), name="delete_review_admin"),
 
 ]
