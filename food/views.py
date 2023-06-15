@@ -531,6 +531,23 @@ class CustomerReview(viewsets.ViewSet):
             return Response({"error": True, "message": "Something Went Wrong"})
 
 
+class FilterByCategory(views.APIView):
+
+    def post(self, request):
+        data = request.data
+        print(data)
+        query = Menu.objects.filter(category_id=data['id'])
+        serializer = MenuSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class FilterByPrice(views.APIView):
+
+    def post(self, request):
+        data = request.data
+        query = Menu.objects.filter(price__range=[data['start'], data['end']])
+        serializer = MenuSerializer(query, many=True)
+        return Response(serializer.data)
 
 
 
