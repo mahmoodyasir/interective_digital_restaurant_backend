@@ -11,11 +11,14 @@ from django.db.models import Q
 
 
 class MenuView(generics.GenericAPIView, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+    # Mixin is inherited for generating Pagination for menu items
+    # next & previous link is provided by this
     queryset = Menu.objects.all().order_by('id')
     serializer_class = MenuSerializer
     lookup_field = "id"
 
     def get(self, request, id=None):
+        # If an item id is passed in parameter. Then, only details of that item will be fetched
         if id:
             return self.retrieve(request)
         else:
@@ -23,6 +26,7 @@ class MenuView(generics.GenericAPIView, mixins.ListModelMixin, mixins.RetrieveMo
 
 
 class MyCart(viewsets.ViewSet):
+    # Fetching API for items added in cart for currently logged-in user.
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
@@ -31,6 +35,7 @@ class MyCart(viewsets.ViewSet):
         serializers = CartSerializers(query, many=True)
         all_data = []
         for cart in serializers.data:
+            # Joining fields of two models
             cart_product = CartProduct.objects.filter(cart=cart['id'])
             cart_product_serializer = CartProductSerializers(
                 cart_product, many=True)
@@ -40,19 +45,26 @@ class MyCart(viewsets.ViewSet):
 
 
 class AddToCart(views.APIView):
+    # Adding Menu Items to Cart
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
         menu_id = request.data['id']
         menu_obj = Menu.objects.get(id=menu_id)
+        # Filtering the cart of logged-in customer where product of that cart is not ordered yet.
         cart_cart = Cart.objects.filter(customer=request.user.profile).filter(complete=False).first()
 
         try:
+            # If requested user already has a cart
             if cart_cart:
+                # Reverse querying to find out if the cart belongs to any added items,
+                # which is CartProduct model
                 this_menu_in_cart = cart_cart.cartproduct_set.filter(menu=menu_obj)
 
                 if this_menu_in_cart.exists():
+                    # If the cart is already existed that means customer has already added this items
+                    # So, Only updating the quantity and price of that item
                     cart_product_uct = CartProduct.objects.filter(menu=menu_obj).filter(cart__complete=False).first()
                     cart_product_uct.quantity += 1
                     cart_product_uct.subtotal += menu_obj.price
@@ -60,6 +72,8 @@ class AddToCart(views.APIView):
                     cart_cart.total += menu_obj.price
                     cart_cart.save()
                 else:
+                    # If the added items doesn't belong to logged-in users cart,
+                    # Then, it is added to that cart
                     cart_product_new = CartProduct.objects.create(
                         cart=cart_cart,
                         price=menu_obj.price,
@@ -70,12 +84,15 @@ class AddToCart(views.APIView):
                     cart_cart.total += menu_obj.price
                     cart_cart.save()
             else:
+                # If user doesn't have any cart, the initially a blank cart is created
                 Cart.objects.create(
                     customer=request.user.profile,
                     total=0,
                     complete=False
                 )
+                # Object of newly created blank cart is created
                 new_cart = Cart.objects.filter(customer=request.user.profile).filter(complete=False).first()
+                # Now updating that cart as per id of requested item
                 cart_product_new = CartProduct.objects.create(
                     cart=new_cart,
                     price=menu_obj.price,
@@ -95,6 +112,7 @@ class AddToCart(views.APIView):
 
 
 class IncreaseCart(views.APIView):
+    # Increasing the item quantity of the requested cart
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -114,6 +132,7 @@ class IncreaseCart(views.APIView):
 
 
 class DecreaseCart(views.APIView):
+    # Decreasing the item quantity of the requested cart
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -136,12 +155,14 @@ class DecreaseCart(views.APIView):
 
 
 class DeleteCartProduct(views.APIView):
+    # Deleting an item from the cart
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
     def post(self, request):
         cart_product = CartProduct.objects.get(id=request.data['id'])
         cart_obj = cart_product.cart
+        # subtracting the values of previous item price from total price
         cart_obj.total -= cart_product.subtotal
         cart_obj.save()
         cart_product.delete()
@@ -150,6 +171,7 @@ class DeleteCartProduct(views.APIView):
 
 
 class DeleteFullCart(views.APIView):
+    # Deleting the full cart
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -166,6 +188,8 @@ class DeleteFullCart(views.APIView):
 
 
 class AlreadyAddedProductResponse(views.APIView):
+    # Check every product from the cart
+    # Required for getting updated about currently added items
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -185,33 +209,40 @@ class AlreadyAddedProductResponse(views.APIView):
 
 
 class RatingView(viewsets.ViewSet):
+    # Rating API for each Menu Item
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
     def list(self, request):
+        # Querying the rating situation for logged-in user
         query = Rating.objects.filter(customer=request.user.profile).order_by('-id')
         serializer = RatingSerializers(query, many=True)
         return Response(serializer.data)
 
     def create(self, request):
         try:
+            # Rating an item when it wasn't rated before
             data = request.data
             customer_obj = request.user.profile
             rating_score = data['rating']
             menuId = data['menuId']
             menu_obj = Menu.objects.get(id=menuId)
+            # Creating a rating field as per customer rating
             Rating.objects.create(
                 customer=customer_obj,
                 ratingScore=rating_score,
                 menuName=menu_obj
             )
+            # Now, object of Rating as per provided menu Id is created
             query = Rating.objects.filter(menuName=menu_obj)
+            # Here, every rating of that item is added to the sum
             sum = 0
             for i in range(query.count()):
                 rating = getattr(query[i], "ratingScore")
                 sum += rating
-
+            # Now, a mean value is created by dividing it with its total occurance
             sum = sum / (query.count())
+            # That mean value is now updated to the rating field of that specific menu item
             menu_obj.ratings = sum
             menu_obj.save()
             serializer = MenuSerializer(menu_obj)
@@ -222,6 +253,8 @@ class RatingView(viewsets.ViewSet):
 
     def update(self, request, pk=None):
         try:
+            # If user has already rated the item
+            # Now, here only update of the value will be done
             data = request.data
             query = Rating.objects.get(id=pk)
             user_obj = request.user.profile
@@ -255,6 +288,7 @@ class RatingView(viewsets.ViewSet):
 
 
 class OwnRating(views.APIView):
+    # API for Rating of a specific item for logged-in user is created here
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
@@ -275,6 +309,7 @@ class Orders(viewsets.ViewSet):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
+        # Listing all orders of an user
         query = Order.objects.filter(cart__customer=request.user.profile).order_by('-id')
         serializer = OrderSerializers(query, many=True)
         all_data = []
@@ -288,6 +323,7 @@ class Orders(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         try:
+            # Retrieve an order to see order details
             query = Order.objects.get(id=pk)
             serializers = OrderSerializers(query)
             data = serializers.data
@@ -303,6 +339,7 @@ class Orders(viewsets.ViewSet):
 
     def create(self, request):
         try:
+            # Ordering from cart
             data = request.data
             cart_id = data['cartId']
             address = data['address']
@@ -321,6 +358,8 @@ class Orders(viewsets.ViewSet):
             )
             cartproduct_obj = CartProduct.objects.filter(cart_id=cart_obj)
             serializer = CartProductSerializers(cartproduct_obj, many=True)
+
+            # Updating the total order value of a Menu Item
             for i in serializer.data:
                 current_quantity = i['quantity']
                 for j in i['menu']:
@@ -337,6 +376,7 @@ class Orders(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         try:
+            # Deleting that order [Depricated. not implemented on frontend]
             order_obj = Order.objects.get(id=pk)
             cart_obj = Cart.objects.get(id=order_obj.cart.id)
             order_obj.delete()
@@ -363,6 +403,8 @@ class CategoryView(views.APIView):
 
 
 class AddItems(views.APIView):
+    # Adding Menu Item on Menu Model
+    # Authorized to Admin Only
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -381,6 +423,8 @@ class AddItems(views.APIView):
 
 
 class UpdateMenuItems(views.APIView):
+    # Updating Fields of a Menu Item
+    # Authorized to Admin Only
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -400,6 +444,8 @@ class UpdateMenuItems(views.APIView):
 
 
 class DeleteItem(views.APIView):
+    # Deleting an Item from Menu
+    # Authorized to Admin Only
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -433,6 +479,7 @@ class TotalTableValues(views.APIView):
 
 
 class OrderStatusView(views.APIView):
+    # Making the API for the order status field for a drop down
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -447,11 +494,13 @@ class AllOrderView(viewsets.ViewSet):
     permission_classes = [IsAdminUser, ]
 
     def list(self, request):
+        # API for listing Every order of Every customer is made here
         query = Order.objects.all().order_by('-id')
         serializer = OrderSerializers(query, many=True)
         return Response(serializer.data)
 
     def update(self, request, pk=None):
+        # Updating the payment status and order status
         try:
             data = request.data
 
@@ -477,7 +526,8 @@ class AllOrderView(viewsets.ViewSet):
 
 
 class AllCustomerReview(views.APIView):
-
+    # No Authorization
+    # API Showing Review of every customer
     def get(self, request):
         try:
             query = Review.objects.all().order_by('-id')
@@ -495,6 +545,8 @@ class AllCustomerReview(views.APIView):
 
 
 class DeleteReviewAdmin(views.APIView):
+    # Deleting any customer Review
+    # Authorized to Admin Inly
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -510,6 +562,7 @@ class CustomerReview(viewsets.ViewSet):
     permission_classes = [IsAuthenticated, ]
 
     def create(self, request):
+        # Adding a new review with ratings for the Feedback
         data = request.data
         user = request.user.profile
         Review.objects.create(
@@ -521,6 +574,7 @@ class CustomerReview(viewsets.ViewSet):
         return Response({"error": False, "message": "Your Review Added"})
 
     def destroy(self, request, pk=None):
+        # Deleting own review
         user = request.user.profile
         query = Review.objects.filter(Q(id=pk) & Q(customer=user))
 
@@ -532,6 +586,7 @@ class CustomerReview(viewsets.ViewSet):
 
 
 class FilterByCategory(views.APIView):
+    # Filter Menu Items as per Menu Category
 
     def post(self, request):
         data = request.data
@@ -542,6 +597,7 @@ class FilterByCategory(views.APIView):
 
 
 class FilterByPrice(views.APIView):
+    # Filter Menu Items as per a price range
 
     def post(self, request):
         data = request.data

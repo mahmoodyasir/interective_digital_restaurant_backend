@@ -3,6 +3,7 @@ from django.contrib.auth.models import (AbstractBaseUser, PermissionsMixin, Base
 
 
 class UserManager(BaseUserManager):
+    # Overriding User Model for email based authentication
     def create_user(self, email, password, **kwargs):
         if not email:
             raise ValueError("User must have an email.")
@@ -24,6 +25,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    # Created a new User model where Username is now Email
     email = models.EmailField(max_length=255, unique=True)
 
     is_active = models.BooleanField(default=True)

@@ -17,6 +17,7 @@ from datetime import *
 
 
 class MyAuthToken(auth_views.ObtainAuthToken):
+    # Customized Token Based Email Authentication.
     serializer_class = MyAuthTokenSerializer
     if coreapi is not None and coreschema is not None:
         schema = ManualSchema(
@@ -48,6 +49,7 @@ obtain_auth_token = MyAuthToken.as_view()
 
 
 class CustomAuthToken(MyAuthToken):
+    # Generating tokens for customized User model
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -66,6 +68,7 @@ class CustomAuthToken(MyAuthToken):
 
 
 class RegisterView(views.APIView):
+    # Registering Regular User
     def post(self, request):
         serializers = UserSerializer(data=request.data)
 
@@ -76,6 +79,7 @@ class RegisterView(views.APIView):
 
 
 class AdminRegister(views.APIView):
+    # Registration of Admin User
     def post(self, request):
         serializers = AdminUserSerializer(data=request.data)
 
@@ -86,6 +90,7 @@ class AdminRegister(views.APIView):
 
 
 class AdminView(views.APIView):
+    # API for admin User
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
@@ -120,6 +125,7 @@ class UserInfoView(views.APIView):
 
 
 class UserDataUpdate(views.APIView):
+    # Profile Update API for both User and Admin
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
@@ -137,6 +143,7 @@ class UserDataUpdate(views.APIView):
 
             response_msg = {"error": False, "message": "User Data is Updated"}
         except:
+            # Except block executes if the requested user is an Admin User
             try:
                 data = request.data
                 admin_obj = AdminUserInfo.objects.get(admin_email=user)
@@ -152,6 +159,7 @@ class UserDataUpdate(views.APIView):
 
 
 class ProfileImageUpdate(views.APIView):
+    # Updating User image
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAuthenticated, ]
 
@@ -162,6 +170,7 @@ class ProfileImageUpdate(views.APIView):
             query = Profile.objects.get(prouser=user)
 
             serializers = ProfileSerializers(query, data=data, context={"request": request})
+            # If required fields are not provided, the it will raise exception
             serializers.is_valid(raise_exception=True)
             serializers.save()
             response_msg = {"error": False, "message": "Profile Image Updated !!"}
@@ -171,6 +180,7 @@ class ProfileImageUpdate(views.APIView):
 
 
 class ChangePassword(views.APIView):
+    # Password Changing for both admin and user if old password is correct
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
@@ -187,6 +197,8 @@ class ChangePassword(views.APIView):
 
 
 class AdminProfileView(views.APIView):
+    # Profile View API for admin
+    # Runs when browser token is admin token
 
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
@@ -208,6 +220,9 @@ class AdminProfileView(views.APIView):
 
 
 class AdminDelete(views.APIView):
+    # This deletes an admin user
+    # Only a registered admin can delete another admin
+    # Also, an admin can not delete own self.
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
