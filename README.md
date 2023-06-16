@@ -1,6 +1,7 @@
 # Food Mania App
 
-Live Link  [CLICK HERE](https://food-mania-bd.netlify.app/)
+#### Live Server Link  [CLICK HERE](https://food-mania-bd.netlify.app/)
+#### Admin Live Server Link  [CLICK HERE](https://food-mania-bd.netlify.app/admin_login)
 
 ## Steps to Install this Project
 
